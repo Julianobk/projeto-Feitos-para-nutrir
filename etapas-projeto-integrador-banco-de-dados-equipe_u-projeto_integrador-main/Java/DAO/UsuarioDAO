@@ -1,0 +1,51 @@
+package dao;
+
+import Modelos.Usuario;
+import java.sql.*;
+
+public class UsuarioDAO {
+
+   
+    public static Usuario autenticarUsuario(String nome, String senha) {
+        String query = "SELECT * FROM usuarios WHERE nome = ? AND senha = ?";
+        try (Connection conn = Conexao.getConnection()) {
+            if (conn != null) { 
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setString(1, nome);
+                    stmt.setString(2, senha);
+                    ResultSet rs = stmt.executeQuery();
+                    if (rs.next()) {
+                        return new Usuario(rs.getInt("id"), rs.getString("nome"), rs.getString("senha"), rs.getBoolean("is_admin"));
+                    }
+                } catch (SQLException e) {
+                    System.out.println("Erro ao preparar ou executar a query: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Não foi possível estabelecer a conexão com o banco de dados.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao autenticar o usuário: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public static void criarUsuario(Usuario usuario) {
+        String query = "INSERT INTO usuarios (nome, senha, is_admin) VALUES (?, ?, ?)";
+        try (Connection conn = Conexao.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                    stmt.setString(1, usuario.getNome());
+                    stmt.setString(2, usuario.getSenha());
+                    stmt.setBoolean(3, usuario.isAdmin());
+                    stmt.executeUpdate();
+                } catch (SQLException e) {
+                    System.out.println("Erro ao preparar ou executar a query: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Não foi possível estabelecer a conexão com o banco de dados.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao criar o usuário: " + e.getMessage());
+        }
+    }
+}

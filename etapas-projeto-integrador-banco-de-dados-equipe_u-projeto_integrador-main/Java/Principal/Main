@@ -1,0 +1,305 @@
+package Principal;
+
+import Modelos.Cliente;
+import Modelos.Pedido;
+import Modelos.Usuario;
+import Modelos.Ingrediente;
+import dao.ClienteDAO;
+import dao.PedidoDAO;
+import dao.UsuarioDAO;
+import dao.IngredienteDAO;
+
+import java.util.List;
+import java.util.Scanner;
+
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("=== Sistema de Gerenciamento ===");
+        System.out.println("Digite seu nome de usuário:");
+        String nome = sc.nextLine();
+        System.out.println("Digite sua senha:");
+        String senha = sc.nextLine();
+
+        Usuario usuarioLogado = UsuarioDAO.autenticarUsuario(nome, senha);
+
+        if (usuarioLogado == null) {
+            System.out.println("Credenciais inválidas. Encerrando o sistema.");
+            return;
+        }
+
+        if (usuarioLogado.isAdmin()) {
+            menuAdministrador(sc);
+        } else {
+            menuCliente(sc, usuarioLogado);
+        }
+    }
+
+    public static void menuAdministrador(Scanner sc) {
+        int opcao;
+        do {
+            System.out.println("\n=== Menu Administrador ===");
+            System.out.println("1. Gerenciar Pedidos");
+            System.out.println("2. Gerenciar Usuários");
+            System.out.println("3. Gerenciar Ingredientes");
+            System.out.println("4. Gerenciar Clientes");
+            System.out.println("0. Sair");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt();
+            sc.nextLine(); // Limpa o buffer
+
+            switch (opcao) {
+                case 1 -> gerenciarPedidos(sc);
+                case 2 -> gerenciarUsuarios(sc);
+                case 3 -> gerenciarIngredientes(sc);
+                case 4 -> gerenciarClientes(sc);
+                case 0 -> System.out.println("Saindo...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    public static void menuCliente(Scanner sc, Usuario usuario) {
+        int opcao;
+        do {
+            System.out.println("\n=== Menu Cliente ===");
+            System.out.println("Bem-vindo, " + usuario.getNome() + "!");
+            System.out.println("1. Listar Pedidos");
+            System.out.println("2. Fazer Pedido");
+            System.out.println("0. Sair");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt();
+            sc.nextLine(); // Limpa o buffer
+
+            switch (opcao) {
+                case 1 -> listarPedidos();
+                case 2 -> adicionarPedido(sc);
+                case 0 -> System.out.println("Saindo...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    public static void gerenciarPedidos(Scanner sc) {
+        int opcao;
+        do {
+            System.out.println("\n=== Gerenciamento de Pedidos ===");
+            System.out.println("1. Listar Pedidos");
+            System.out.println("2. Adicionar Pedido");
+            System.out.println("3. Excluir Pedido");
+            System.out.println("0. Voltar ao menu anterior");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt();
+            sc.nextLine(); // Limpa o buffer
+
+            switch (opcao) {
+                case 1 -> listarPedidos();
+                case 2 -> adicionarPedido(sc);
+                case 3 -> excluirPedido(sc);
+                case 0 -> System.out.println("Voltando ao menu anterior...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    public static void adicionarPedido(Scanner sc) {
+        System.out.println("\nDigite o nome do cliente:");
+        String nome = sc.nextLine();
+
+        System.out.println("Digite o item do pedido:");
+        String item = sc.nextLine();
+
+        System.out.println("Digite a quantidade:");
+        int quantidade = sc.nextInt();
+        sc.nextLine();
+
+        Pedido pedido = new Pedido(0, nome, item, quantidade);
+        PedidoDAO.adicionarPedido(pedido);
+    }
+
+    public static void listarPedidos() {
+        List<Pedido> pedidos = PedidoDAO.listarPedidos();
+        System.out.println("\n=== Pedidos Cadastrados ===");
+        for (Pedido pedido : pedidos) {
+            System.out.println(pedido);
+        }
+    }
+
+    public static void excluirPedido(Scanner sc) {
+        System.out.println("\nDigite o ID do pedido a ser excluído:");
+        int id = sc.nextInt();
+        sc.nextLine();
+        PedidoDAO.excluirPedido(id);
+    }
+
+    public static void gerenciarUsuarios(Scanner sc) {
+        int opcao;
+        do {
+            System.out.println("\n=== Gerenciamento de Usuários ===");
+            System.out.println("1. Listar Usuários");
+            System.out.println("2. Adicionar Usuário");
+            System.out.println("3. Excluir Usuário");
+            System.out.println("0. Voltar ao menu anterior");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt();
+            sc.nextLine(); // Limpa o buffer
+
+            switch (opcao) {
+                case 1 -> listarUsuarios();
+                case 2 -> adicionarUsuario(sc);
+                case 3 -> excluirUsuario(sc);
+                case 0 -> System.out.println("Voltando ao menu anterior...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    public static void listarUsuarios() {
+        List<Usuario> usuarios = UsuarioDAO.listarUsuarios();
+        System.out.println("\n=== Usuários Cadastrados ===");
+        for (Usuario usuario : usuarios) {
+            System.out.println(usuario);
+        }
+    }
+
+    public static void adicionarUsuario(Scanner sc) {
+        System.out.println("\nDigite o nome do usuário:");
+        String nome = sc.nextLine();
+
+        System.out.println("Digite a senha:");
+        String senha = sc.nextLine();
+
+        System.out.println("O usuário é administrador? (true/false):");
+        boolean isAdmin = sc.nextBoolean();
+        sc.nextLine();
+
+        Usuario usuario = new Usuario(0, nome, senha, isAdmin);
+        UsuarioDAO.criarUsuario(usuario);
+    }
+
+    public static void excluirUsuario(Scanner sc) {
+        System.out.println("\nDigite o ID do usuário a ser excluído:");
+        int id = sc.nextInt();
+        sc.nextLine();
+        UsuarioDAO.excluirUsuario(id);
+    }
+
+    public static void gerenciarIngredientes(Scanner sc) {
+        int opcao;
+        do {
+            System.out.println("\n=== Gerenciamento de Ingredientes ===");
+            System.out.println("1. Listar Ingredientes");
+            System.out.println("2. Adicionar Ingrediente");
+            System.out.println("3. Excluir Ingrediente");
+            System.out.println("0. Voltar ao menu anterior");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt();
+            sc.nextLine(); // Limpa o buffer
+
+            switch (opcao) {
+                case 1 -> listarIngredientes();
+                case 2 -> adicionarIngrediente(sc);
+                case 3 -> excluirIngrediente(sc);
+                case 0 -> System.out.println("Voltando ao menu anterior...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    public static void listarIngredientes() {
+        List<Ingrediente> ingredientes = IngredienteDAO.listarIngredientes();
+        System.out.println("\n=== Ingredientes Cadastrados ===");
+        for (Ingrediente ingrediente : ingredientes) {
+            System.out.println(ingrediente);
+        }
+    }
+
+ public static void adicionarIngrediente(Scanner sc) {
+    System.out.println("\nDigite o nome do ingrediente:");
+    String nome = sc.nextLine();
+
+    System.out.println("Digite a quantidade:");
+    int quantidade = sc.nextInt();
+    sc.nextLine(); // Limpa o buffer
+
+    // Cria o objeto Ingrediente
+    Ingrediente ingrediente = new Ingrediente(0, nome, quantidade);
+
+    // Adiciona o ingrediente na DAO
+    IngredienteDAO.adicionarIngrediente(ingrediente);
+}
+
+    public static void excluirIngrediente(Scanner sc) {
+        System.out.println("\nDigite o ID do ingrediente a ser excluído:");
+        int id = sc.nextInt();
+        sc.nextLine();
+        IngredienteDAO.excluirIngrediente(id);
+    }
+
+    // Métodos para gerenciar clientes
+    public static void gerenciarClientes(Scanner sc) {
+        int opcao;
+        do {
+            System.out.println("\n=== Gerenciamento de Clientes ===");
+            System.out.println("1. Listar Clientes");
+            System.out.println("2. Adicionar Cliente");
+            System.out.println("3. Excluir Cliente");
+            System.out.println("0. Voltar ao menu anterior");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt();
+            sc.nextLine(); // Limpa o buffer
+
+            switch (opcao) {
+                case 1 -> listarClientes();
+                case 2 -> adicionarCliente(sc);
+                case 3 -> excluirCliente(sc);
+                case 0 -> System.out.println("Voltando ao menu anterior...");
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+ public static void listarClientes() {
+    List<Cliente> clientes = ClienteDAO.listarClientes();
+    System.out.println("\n=== Clientes Cadastrados ===");
+    
+    if (clientes.isEmpty()) {
+        System.out.println("Nenhum cliente encontrado.");
+    } else {
+        for (Cliente cliente : clientes) {
+            System.out.println(cliente);
+        }
+    }
+}
+         
+
+        public static void adicionarCliente(Scanner sc) {
+    System.out.println("\nDigite o nome do cliente:");
+    String nome = sc.nextLine();
+
+    System.out.println("Digite o telefone do cliente:");
+    String telefone = sc.nextLine();
+
+    System.out.println("Digite o email do cliente:");
+    String email = sc.nextLine();
+
+    System.out.println("Digite o endereço do cliente:");
+    String endereco = sc.nextLine();
+
+    // Cria o objeto Cliente com todos os campos
+    Cliente cliente = new Cliente(0, nome, telefone, email, endereco);
+
+    // Adiciona o cliente na DAO
+    ClienteDAO.adicionarCliente(cliente);
+}
+
+
+    public static void excluirCliente(Scanner sc) {
+        System.out.println("\nDigite o ID do cliente a ser excluído:");
+        int id = sc.nextInt();
+        sc.nextLine();
+        ClienteDAO.excluirCliente(id);
+    }
+}
